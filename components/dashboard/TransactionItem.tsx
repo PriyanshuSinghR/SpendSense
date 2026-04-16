@@ -4,23 +4,29 @@ interface Props {
 	merchant: string;
 	amount: number;
 	type: "income" | "expense";
+	date?: string;
 }
 
-export default function TransactionItem({ merchant, amount, type }: Props) {
+export default function TransactionItem({
+	merchant,
+	amount,
+	type,
+	date,
+}: Props) {
 	return (
-		<View className="flex-row justify-between bg-white p-4 rounded-xl mb-3">
+		<View className="flex-row justify-between items-center bg-white px-5 py-4 rounded-[24px] mb-4">
 			<View>
-				<Text className="font-semibold">{merchant}</Text>
+				<Text className="text-lg font-semibold text-gray-800">{merchant}</Text>
 
-				<Text className="text-gray-400 text-xs">Today</Text>
+				<Text className="text-sm text-gray-400 mt-1">{date || "Today"}</Text>
 			</View>
 
 			<Text
-				className={`font-semibold ${
-					type === "expense" ? "text-red-500" : "text-green-600"
+				className={`text-xl font-bold ${
+					type === "expense" ? "text-gray-800" : "text-green-600"
 				}`}
 			>
-				{type === "expense" ? "-" : "+"}₹{amount}
+				${amount.toFixed(2)}
 			</Text>
 		</View>
 	);
