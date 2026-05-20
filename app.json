@@ -9,9 +9,18 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.SpendSense"
     },
     "android": {
+      "permissions": [
+        "READ_SMS",
+        "POST_NOTIFICATIONS",
+        "USE_BIOMETRIC",
+        "READ_SMS",
+        "POST_NOTIFICATIONS",
+        "USE_BIOMETRIC"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -19,7 +28,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.SpendSense"
     },
     "web": {
       "output": "static",
