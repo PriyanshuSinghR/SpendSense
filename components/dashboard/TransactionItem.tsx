@@ -1,33 +1,34 @@
-import { Text, View } from "react-native";
+import { Transaction } from "@/types/transaction";
+import { Pressable, Text, View } from "react-native";
 
 interface Props {
-	merchant: string;
-	amount: number;
-	type: "income" | "expense";
-	date?: string;
+  transaction: Transaction;
 }
 
-export default function TransactionItem({
-	merchant,
-	amount,
-	type,
-	date,
-}: Props) {
-	return (
-		<View className="flex-row justify-between items-center bg-white px-5 py-4 rounded-[24px] mb-4">
-			<View>
-				<Text className="text-lg font-semibold text-gray-800">{merchant}</Text>
+export default function TransactionItem({ transaction }: Props) {
+  return (
+    <Pressable className="bg-[#fafafa] rounded-[28px] px-6 py-6 mb-5 flex-row items-center justify-between border border-[#ededed]">
+      <View className="flex-1 pr-4">
+        <Text
+          numberOfLines={1}
+          className="text-[18px] font-bold text-[#363636] mb-2"
+        >
+          {transaction.merchant}
+        </Text>
 
-				<Text className="text-sm text-gray-400 mt-1">{date || "Today"}</Text>
-			</View>
+        <Text className="text-[13px] text-[#969696]">
+          {new Date(transaction.date).toDateString()}
+        </Text>
+      </View>
 
-			<Text
-				className={`text-xl font-bold ${
-					type === "expense" ? "text-gray-800" : "text-green-600"
-				}`}
-			>
-				${amount.toFixed(2)}
-			</Text>
-		</View>
-	);
+      <Text
+        className={`text-[18px] font-bold ${
+          transaction.type === "expense" ? "text-red-500" : "text-green-500"
+        }`}
+      >
+        {transaction.type === "expense" ? "-" : "+"}₹
+        {transaction.amount.toFixed(2)}
+      </Text>
+    </Pressable>
+  );
 }

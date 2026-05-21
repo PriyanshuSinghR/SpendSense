@@ -1,10 +1,13 @@
+import TransactionItem from "@/components/dashboard/TransactionItem";
 import { parseTransactionMessage } from "@/services/parserService";
 import { requestSmsPermission } from "@/services/permissionService";
 import { getBankSms } from "@/services/smsService";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { addTransaction } from "@/store/transactionSlice";
+import { setTransactions } from "@/store/transactionSlice";
+import { SmsMessage } from "@/types/sms";
+import { Transaction } from "@/types/transaction";
 import { router } from "expo-router";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 
 export default function DashboardScreen() {
@@ -12,10 +15,6 @@ export default function DashboardScreen() {
 
   const transactions = useAppSelector(
     (state) => state.transaction.transactions,
-  );
-
-  const sortedTransactions = [...transactions].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
   );
 
   useEffect(() => {
@@ -28,42 +27,48 @@ export default function DashboardScreen() {
       }
 
       try {
-        const smsList: any = await getBankSms();
+        const smsList: SmsMessage[] = await getBankSms();
 
-        smsList.forEach((sms: any, index: number) => {
-          const parsed = parseTransactionMessage(sms.body);
+        const parsedTransactions = smsList
+          .map((sms: SmsMessage) => {
+            const parsed = parseTransactionMessage(sms.body, sms.address);
 
-          console.log("PARSED:", {
-            id: sms._id,
-            merchant: parsed.merchant,
-            amount: parsed.amount,
-            type: parsed.type,
-            date: new Date(Number(sms.date)).toDateString(),
-          });
+            if (!parsed) return null;
 
-          const alreadyExists = transactions.some(
-            (item) => item.id === sms._id.toString(),
-          );
+            // console.log("PARSED:", {
+            //   id: sms._id,
+            //   merchant: parsed.merchant,
+            //   amount: parsed.amount,
+            //   type: parsed.type,
+            //   date: new Date(Number(sms.date)).toDateString(),
+            // });
 
-          if (parsed.amount > 0 && !alreadyExists) {
-            dispatch(
-              addTransaction({
-                id: sms._id,
-                merchant: parsed.merchant,
-                amount: parsed.amount,
-                type: parsed.type,
-                date: new Date(Number(sms.date)).toDateString(),
-              }),
-            );
-          }
-        });
+            return {
+              id: sms._id,
+              merchant: parsed.merchant,
+              amount: parsed.amount,
+              type: parsed.type,
+              date: Number(sms.date),
+            };
+          })
+          .filter((item): item is Transaction => item !== null)
+          .filter((item) => item.amount > 0)
+          .sort((a, b) => b.date - a.date);
+
+        dispatch(setTransactions(parsedTransactions));
       } catch (error) {
         console.log("SMS ERROR:", error);
       }
     }
 
     loadSms();
-  }, []);
+  }, [dispatch]);
+
+  const latestTransactions = transactions.slice(0, 5);
+
+  const totalBalance = transactions.reduce((acc, item) => {
+    return item.type === "income" ? acc + item.amount : acc - item.amount;
+  }, 0);
 
   return (
     <View className="flex-1 bg-[#f4f4f4]">
@@ -109,7 +114,7 @@ export default function DashboardScreen() {
             </Text>
 
             <Text className="text-[26px] font-bold text-[#3b3b3b]">
-              $12567.89
+              ₹{totalBalance.toFixed(2)}
             </Text>
           </View>
 
@@ -137,27 +142,8 @@ export default function DashboardScreen() {
         </View>
 
         <View className="pb-28">
-          {sortedTransactions.map((item, index) => (
-            <Pressable
-              key={item.id}
-              className="bg-[#fafafa] rounded-[28px] px-6 py-6 mb-5 flex-row items-center justify-between border border-[#ededed]"
-            >
-              <View>
-                <Text className="text-[18px] font-bold text-[#363636] mb-2">
-                  {item.merchant}
-                </Text>
-
-                <Text className="text-[13px] text-[#969696]">{item.date}</Text>
-              </View>
-
-              <Text
-                className={`text-[18px] font-bold ${
-                  item.type === "expense" ? "text-red-500" : "text-green-500"
-                }`}
-              >
-                {item.type === "expense" ? "-" : "+"}₹{item.amount}
-              </Text>
-            </Pressable>
+          {latestTransactions.map((item) => (
+            <TransactionItem key={item.id} transaction={item} />
           ))}
         </View>
       </ScrollView>

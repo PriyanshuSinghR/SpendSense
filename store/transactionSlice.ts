@@ -2,13 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 import { storage } from "./storage";
 
-export interface Transaction {
-  id: string;
-  merchant: string;
-  amount: number;
-  type: "income" | "expense";
-  date: string;
-}
+import { Transaction } from "@/types/transaction";
 
 interface TransactionState {
   transactions: Transaction[];
@@ -27,15 +21,7 @@ const transactionSlice = createSlice({
 
   reducers: {
     addTransaction: (state, action: PayloadAction<Transaction>) => {
-      const alreadyExists = state.transactions.find(
-        (item) => item.id === action.payload.id,
-      );
-
-      if (alreadyExists) {
-        return;
-      }
-
-      state.transactions.unshift(action.payload);
+      state.transactions.push(action.payload);
 
       storage.set("transactions", JSON.stringify(state.transactions));
     },
@@ -43,7 +29,7 @@ const transactionSlice = createSlice({
     setTransactions: (state, action: PayloadAction<Transaction[]>) => {
       state.transactions = action.payload;
 
-      storage.set("transactions", JSON.stringify(state.transactions));
+      storage.set("transactions", JSON.stringify(action.payload));
     },
   },
 });
