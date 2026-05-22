@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setTransactions } from "@/store/transactionSlice";
 import { SmsMessage } from "@/types/sms";
 import { Transaction } from "@/types/transaction";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
@@ -72,6 +73,12 @@ export default function DashboardScreen() {
 
   return (
     <View className="flex-1 bg-[#f4f4f4]">
+      <Pressable
+        onPress={() => router.push("/settings")}
+        className="absolute top-14 right-5 z-50 bg-white p-3 rounded-full"
+      >
+        <Ionicons name="settings-outline" size={22} color="#111827" />
+      </Pressable>
       <View className="absolute top-0 right-0 w-48 h-48 rounded-full bg-[#f3dc84] opacity-90" />
 
       <View className="absolute left-[-90px] top-[320px] w-56 h-56 rounded-full bg-[#b8e6fb] opacity-90" />
