@@ -37,18 +37,33 @@ export default function LockScreen() {
     loadPin();
   }, []);
 
+  const [checkedBiometric, setCheckedBiometric] = useState(false);
+
   useEffect(() => {
+    if (checkedBiometric) return;
+
     async function tryBiometric() {
+      setCheckedBiometric(true);
+
       const enabled = await getBiometricEnabled();
+
       if (!enabled) return;
+
       const success = await authenticateBiometric();
+
       if (success) {
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
+
         dispatch(unlockApp());
+
         router.replace("/");
       }
     }
+
     tryBiometric();
-  }, []);
+  }, [checkedBiometric, dispatch]);
 
   async function handleNumberPress(num: string) {
     if (pin.length >= 4) return;
@@ -78,7 +93,9 @@ export default function LockScreen() {
       // LOGIN PIN
 
       if (savedPin === newPin) {
-        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        );
         dispatch(unlockApp());
         router.replace("/");
         return;

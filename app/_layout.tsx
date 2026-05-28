@@ -1,18 +1,14 @@
-import { Redirect, Stack } from "expo-router";
-
-import { Provider } from "react-redux";
-
-import { store } from "@/store/store";
-
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-
-import { useEffect } from "react";
-
-import { AppState } from "react-native";
-
 import { lockApp } from "@/store/authSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { store } from "@/store/store";
+import { Redirect, Stack, usePathname } from "expo-router";
+import { useEffect } from "react";
+import { AppState } from "react-native";
+import { Provider } from "react-redux";
+import "../global.css";
 
 function RootNavigation() {
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
 
   const isLocked = useAppSelector((state) => state.auth.isLocked);
@@ -25,15 +21,16 @@ function RootNavigation() {
     });
 
     return () => subscription.remove();
-  }, []);
+  }, [dispatch]);
 
-  if (isLocked) {
+  if (isLocked && pathname !== "/lock") {
     return <Redirect href="/lock" />;
   }
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="lock" />
     </Stack>
   );
 }

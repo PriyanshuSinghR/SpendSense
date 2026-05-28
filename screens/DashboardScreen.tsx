@@ -20,6 +20,7 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     async function loadSms() {
+      if (transactions.length > 0) return;
       const granted = await requestSmsPermission();
 
       if (!granted) {
@@ -87,10 +88,6 @@ export default function DashboardScreen() {
         className="flex-1 px-5 pt-14"
         showsVerticalScrollIndicator={false}
       >
-        <Text className="text-[16px] text-[#909090] mb-6 tracking-wide">
-          account overview
-        </Text>
-
         <View className="flex-row items-center mb-10">
           <View className="relative mr-5">
             <Image
