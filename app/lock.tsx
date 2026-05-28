@@ -1,6 +1,6 @@
 import PinDots from "@/components/security/PinDots";
 import PinPad from "@/components/security/PinPad";
-
+import { authenticateBiometric } from "@/services/biometricService";
 import {
     getBiometricEnabled,
     getPin,
@@ -9,19 +9,19 @@ import {
 import { unlockApp } from "@/store/authSlice";
 import { useAppDispatch } from "@/store/hooks";
 import * as Haptics from "expo-haptics";
-
-import { router } from "expo-router";
-
-import { useEffect, useState } from "react";
-
-import { authenticateBiometric } from "@/services/biometricService";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 export default function LockScreen() {
   const dispatch = useAppDispatch();
+
   const [pin, setPin] = useState("");
+
   const [savedPin, setSavedPin] = useState<string | null>(null);
+
   const [firstPin, setFirstPin] = useState("");
+
   const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
@@ -34,70 +34,85 @@ export default function LockScreen() {
         setIsCreating(true);
       }
     }
+
     loadPin();
   }, []);
 
-  const [checkedBiometric, setCheckedBiometric] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      async function tryBiometric() {
+        const enabled = await getBiometricEnabled();
 
-  useEffect(() => {
-    if (checkedBiometric) return;
+        if (!enabled) return;
 
-    async function tryBiometric() {
-      setCheckedBiometric(true);
+        const success = await authenticateBiometric();
 
-      const enabled = await getBiometricEnabled();
+        if (success) {
+          await Haptics.notificationAsync(
+            Haptics.NotificationFeedbackType.Success,
+          );
 
-      if (!enabled) return;
+          dispatch(unlockApp());
 
-      const success = await authenticateBiometric();
-
-      if (success) {
-        await Haptics.notificationAsync(
-          Haptics.NotificationFeedbackType.Success,
-        );
-
-        dispatch(unlockApp());
-
-        router.replace("/");
+          router.replace("/");
+        }
       }
-    }
 
-    tryBiometric();
-  }, [checkedBiometric, dispatch]);
+      tryBiometric();
+    }, [dispatch]),
+  );
 
   async function handleNumberPress(num: string) {
     if (pin.length >= 4) return;
+
     const newPin = pin + num;
+
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
     setPin(newPin);
+
     if (newPin.length === 4) {
-      // CREATE NEW PIN
       if (isCreating) {
         if (!firstPin) {
           setFirstPin(newPin);
+
           setPin("");
+
           return;
         }
 
         if (firstPin === newPin) {
           await savePin(newPin);
+
+          await Haptics.notificationAsync(
+            Haptics.NotificationFeedbackType.Success,
+          );
+
           dispatch(unlockApp());
+
           router.replace("/");
+
           return;
         }
+
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+
         setFirstPin("");
+
         setPin("");
+
         return;
       }
-
-      // LOGIN PIN
 
       if (savedPin === newPin) {
         await Haptics.notificationAsync(
           Haptics.NotificationFeedbackType.Success,
         );
+
         dispatch(unlockApp());
+
         router.replace("/");
+
         return;
       }
 
@@ -122,7 +137,7 @@ export default function LockScreen() {
           ? firstPin
             ? "Confirm your PIN"
             : "Create a 4-digit PIN"
-          : "Enter your PIN"}
+          : "Unlock with PIN or Biometrics"}
       </Text>
 
       <PinDots length={pin.length} />
